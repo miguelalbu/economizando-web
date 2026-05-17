@@ -34,20 +34,6 @@ services:
         condition: service_healthy
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
-  frontend:
-    build:
-      context: ./front-end
-      dockerfile: Dockerfile
-    container_name: economiza_frontend
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./front-end:/app
-      - /app/node_modules
-    depends_on:
-      - backend
-
 volumes:
   postgres_data:
     name: economiza_postgres_data
