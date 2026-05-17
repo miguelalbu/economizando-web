@@ -9,31 +9,34 @@ from app.models.base import Base, TimestampMixin
 
 
 class InvestmentType(str, enum.Enum):
-    FIXED_INCOME = "fixed_income"     # Renda Fixa (CDB, LCI, LCA, Tesouro)
-    VARIABLE_INCOME = "variable_income"  # Renda Variável (Ações, FIIs)
-    CRYPTO = "crypto"
-    SAVINGS = "savings"               # Poupança
-    PENSION = "pension"               # Previdência
-    OTHER = "other"
+    FIXED_INCOME    = "fixed_income"
+    VARIABLE_INCOME = "variable_income"
+    CRYPTO          = "crypto"
+    SAVINGS         = "savings"
+    PENSION         = "pension"
+    OTHER           = "other"
 
 
 class Investment(Base, TimestampMixin):
+    """Posição de investimento. Os valores são calculados a partir das transações."""
+
     __tablename__ = "investments"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-
-    name: Mapped[str] = mapped_column(String(255), nullable=False)
-    type: Mapped[InvestmentType] = mapped_column(Enum(InvestmentType), nullable=False)
-    amount_invested: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
+    id:            Mapped[int]            = mapped_column(primary_key=True, index=True)
+    user_id:       Mapped[int]            = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    name:          Mapped[str]            = mapped_column(String(255), nullable=False)
+    type:          Mapped[InvestmentType] = mapped_column(Enum(InvestmentType), nullable=False)
     current_value: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
-    invested_at: Mapped[date] = mapped_column(Date, nullable=False)
-    maturity_date: Mapped[date | None] = mapped_column(Date, nullable=True)
-    institution: Mapped[str | None] = mapped_column(String(100), nullable=True)  # Banco/Corretora
-    notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    maturity_date: Mapped[date | None]    = mapped_column(Date, nullable=True)
+    institution:   Mapped[str | None]     = mapped_column(String(100), nullable=True)
+    notes:         Mapped[str | None]     = mapped_column(Text, nullable=True)
 
-    # Relacionamento
-    user: Mapped["User"] = relationship(back_populates="investments")
+    user:         Mapped["User"]                       = relationship(back_populates="investments")
+    transactions: Mapped[list["InvestmentTransaction"]] = relationship(
+        back_populates="investment",
+        cascade="all, delete-orphan",
+        order_by="InvestmentTransaction.transaction_date.desc()",
+    )
 
     def __repr__(self) -> str:
-        return f"<Investment id={self.id} name={self.name} amount={self.amount_invested}>"
+        return f"<Investment id={self.id} name={self.name}>"

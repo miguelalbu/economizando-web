@@ -19,7 +19,7 @@ async def list_expenses(
     current_user: CurrentUser,
     session: DBSession,
     skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=200),
+    limit: int = Query(100, ge=1, le=1000),
 ) -> list[ExpenseResponse]:
     service = ExpenseService(session)
     expenses = await service.get_all(current_user.id, skip, limit)
