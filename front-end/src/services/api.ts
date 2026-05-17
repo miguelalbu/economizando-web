@@ -1,7 +1,12 @@
 import axios from 'axios'
 
+const baseURL = import.meta.env.VITE_API_URL
+if (!baseURL) {
+  console.error('[api] VITE_API_URL não está definida. Configure a variável de ambiente no Vercel.')
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL,
   headers: { 'Content-Type': 'application/json' },
 })
 
